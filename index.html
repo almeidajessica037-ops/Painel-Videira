@@ -483,7 +483,7 @@ const ALL_MODULES=[
   {id:'emprestimos',label:'Empréstimos',icon:'loans',cls:'ic-teal',roles:['pastor','admin']},
   {id:'agenda',label:'Agenda',icon:'agenda',cls:'ic-magenta',roles:['pastor','lider','admin']},
   {id:'aniversariantes',label:'Aniversariantes',icon:'bday',cls:'ic-aqua',roles:['pastor','lider','admin']},
-  {id:'admin',label:'Administração',icon:'admin',cls:'ic-navy',roles:['admin']},
+  {id:'admin',label:'Administração',icon:'admin',cls:'ic-navy',roles:['admin','pastor']},
 ];
 function visibleModules(){return ALL_MODULES.filter(m=>m.roles.includes(SESSION.role));}
 function moduleBlurb(id){return {escala:'Confira as escalas e distribua as tarefas do culto.',celulas:'Cadastre e acompanhe as células da igreja.',eventos:'Crie eventos e acompanhe o checklist de preparação.',emprestimos:'Controle os itens emprestados pela igreja.',agenda:'Organize sua agenda e compromissos.',aniversariantes:'Veja os aniversariantes por competência.',admin:'Cadastre usuários e administre permissões do sistema.'}[id];}
@@ -610,13 +610,19 @@ function newEscala(editId){
 function editEscala(id){newEscala(id);}
 function delEscala(id){confirmDelete('Excluir esta escala?',()=>{STATE.escalas=STATE.escalas.filter(e=>e.id!==id);save();route();});}
 
+function usuarioDaCelula(celulaId){return STATE.users.find(u=>u.papel==='lider'&&u.celulaId===celulaId);}
+function avatarMini(u,nomeFallback,tamanho){
+  tamanho=tamanho||34;
+  const conteudo=u&&u.foto?`<img src="${u.foto}" style="width:100%;height:100%;object-fit:cover;">`:initials(nomeFallback||(u?u.nome:'?'));
+  return `<div style="width:${tamanho}px;height:${tamanho}px;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,var(--turq),var(--purple));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:${Math.round(tamanho*0.36)}px;flex-shrink:0;">${conteudo}</div>`;
+}
 function celulasPage(){
   let list=STATE.celulas;
   if(SESSION.role==='lider')list=list.filter(c=>c.id===SESSION.celulaId);
   if(SESSION.role==='lider'&&!SESSION.celulaId){
     return pageHead('Células','Cadastre e acompanhe as células da igreja.')+`<div class="reminder" style="background:#E7EEFB;border-color:#C9DBF5;color:#1E4F9C;">${icon('warn',17)}Seu usuário ainda não está vinculado a nenhuma célula. Peça ao pastor ou ao administrador para concluir esse vínculo em Administração.</div>`;
   }
-  const cards=list.map(c=>`<a class="card link" href="#/celulas/${c.id}"><div class="icon ic-purple">${icon('cells')}</div><div><h3>${c.nome}</h3><p>Líder: ${c.lider.nome}<br>${c.endereco}</p></div><div class="go">${c.membros.length} membros ${icon('chev',15)}</div></a>`).join('');
+  const cards=list.map(c=>{const u=usuarioDaCelula(c.id);return `<a class="card link" href="#/celulas/${c.id}"><div style="display:flex;align-items:center;gap:10px;"><div class="icon ic-purple">${icon('cells')}</div>${avatarMini(u,c.nome,30)}</div><div><h3>${c.nome}</h3><p>Líder: ${c.lider.nome}<br>${c.endereco}</p></div><div class="go">${c.membros.length} membros ${icon('chev',15)}</div></a>`;}).join('');
   return pageHead('Células','Cadastre e acompanhe as células da igreja.',SESSION.role!=='lider'?{label:'Nova Célula',onclick:'newCelula()'}:null,
     `<button type="button" class="btn ghost" onclick="exportCelulasPDF()">${icon('download',15)}PDF</button><button type="button" class="btn ghost" onclick="exportCelulasExcel()">${icon('download',15)}Excel</button>`)+`<div class="cell-grid">${cards}</div>`;
 }
@@ -650,7 +656,8 @@ function celulaDetailPage(id){
   const podeExcluir=SESSION.role!=='lider';
   const membrosRows=c.membros.map(m=>`<div class="row"><div class="person"><div class="av">${initials(m.nome)}</div><div><div class="rtitle">${m.nome} ${pill(m.tipo==='membro'?'info':'wait',m.tipo==='membro'?'Membro':'Visitante')}</div><div class="rsub">${fmtDate(m.nascimento)} · ${m.telefone||'—'}</div></div></div><div class="rright">${canManage?actions(`editMembro('${c.id}','${m.id}')`,podeExcluir?`delMembro('${c.id}','${m.id}')`:null):''}</div></div>`).join('')||'<div class="row"><span class="rsub">Nenhum membro cadastrado.</span></div>';
   return `<a class="detail-back" href="#/celulas">${icon('back',15)}Voltar para Células</a>
-  ${pageHead(c.nome,'Detalhes, membros e comunicados da célula.',canManage?{label:'Editar célula',onclick:`newCelula('${c.id}')`}:null)}
+  <div style="display:flex;align-items:center;gap:14px;margin-bottom:4px;">${avatarMini(usuarioDaCelula(c.id),c.nome,52)}
+  <div style="flex:1;min-width:0;">${pageHead(c.nome,'Detalhes, membros e comunicados da célula.',canManage?{label:'Editar célula',onclick:`newCelula('${c.id}')`}:null)}</div></div>
   ${reminders}
   <div class="info-grid">
     <div><span>Líder</span><b>${c.lider.nome}</b></div><div><span>Telefone do líder</span><b>${c.lider.telefone||'—'}</b></div>
@@ -1088,10 +1095,10 @@ function adminPage(){
     const roleLabel=u.papel==='pastor'?'Pastor':u.papel==='admin'?'Administrador':'Líder';
     const rolePill=u.papel==='pastor'?'info':u.papel==='admin'?'ok':'wait';
     const celulaTxt=u.papel==='lider'?(u.celulaId?celulaById(u.celulaId).nome:'Sem célula vinculada'):'—';
-    return `<tr><td>${u.nome}</td><td>${pill(rolePill,roleLabel)}</td><td>${celulaTxt}</td><td>${u.papel==='lider'&&u.nascimento?fmtDate(u.nascimento):'—'}</td><td>${actions(`editUsuario('${u.id}')`,`delUsuario('${u.id}')`)}</td></tr>`;
+    return `<tr><td>${avatarMini(u,u.nome,30)}</td><td>${u.nome}</td><td>${pill(rolePill,roleLabel)}</td><td>${celulaTxt}</td><td>${u.papel==='lider'&&u.nascimento?fmtDate(u.nascimento):'—'}</td><td>${actions(`editUsuario('${u.id}')`,`delUsuario('${u.id}')`)}</td></tr>`;
   }).join('');
   return pageHead('Administração','Cadastre usuários, defina papéis de acesso e vincule líderes às células.',{label:'Novo usuário',onclick:'newUsuario()'})+
-  `<div class="table-wrap"><table><thead><tr><th>Nome</th><th>Papel</th><th>Célula</th><th>Nascimento</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  `<div class="table-wrap"><table><thead><tr><th></th><th>Nome</th><th>Papel</th><th>Célula</th><th>Nascimento</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 function newUsuario(editId){
   const u=editId?STATE.users.find(x=>x.id===editId):null;
