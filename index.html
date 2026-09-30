@@ -52,7 +52,8 @@ html{scroll-padding-top:env(safe-area-inset-top,0px);}
 .topbar h1{font-size:19px;margin:0;font-weight:700;}
 .hamburger{display:none;background:none;border:none;padding:8px;border-radius:8px;color:var(--ink);}
 .hamburger:hover{background:var(--line);}
-.avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--turq),var(--purple));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;}
+.avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--turq),var(--purple));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;font-family:inherit;}
+.avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
 .content{padding:26px 28px 60px;max-width:1180px;}
 
 .hero{background:linear-gradient(120deg,var(--navy) 0%,var(--blue) 60%,var(--turq) 130%);border-radius:20px;padding:30px 32px;color:#fff;margin-bottom:26px;position:relative;overflow:hidden;}
@@ -107,6 +108,7 @@ html{scroll-padding-top:env(safe-area-inset-top,0px);}
 .iconbtn:hover{background:var(--line);color:var(--ink);}
 .iconbtn svg{width:16px;height:16px;}
 .iconbtn.del:hover{color:var(--danger);background:#FBE6E3;}
+.iconbtn.active{color:var(--turq);background:#E4F5F3;}
 
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
 .stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);}
@@ -151,6 +153,7 @@ tr:last-child td{border-bottom:none;}
 .check-row input[type=checkbox]{width:18px;height:18px;accent-color:var(--turq);flex-shrink:0;}
 .check-row .ctitle{font-weight:600;font-size:13.5px;}
 .check-row .ctitle.done{text-decoration:line-through;color:var(--muted);}
+.rtitle.done{text-decoration:line-through;color:var(--muted);}
 .check-row .csub{font-size:12px;color:var(--muted);}
 
 .overlay{position:fixed;inset:0;background:rgba(11,31,58,.5);opacity:0;pointer-events:none;transition:opacity .2s ease;z-index:19;}
@@ -225,7 +228,7 @@ tr:last-child td{border-bottom:none;}
         <button class="hamburger" id="hamburger" aria-label="Abrir menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
         <h1 id="pageTitle">Visão Geral</h1>
       </div>
-      <div class="avatar" id="avatarBox">PA</div>
+      <button type="button" class="avatar" id="avatarBox" title="Alterar foto de perfil" style="border:none;cursor:pointer;padding:0;overflow:hidden;">PA</button>
     </div>
     <div class="content" id="content"></div>
   </div>
@@ -247,6 +250,8 @@ const ICONS = {
   admin:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1A2 2 0 1 1 7 3.3l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V2a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5h.1a1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
   download:'<path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/>',
   mail:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',
+  check:'<circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9"/>',
+  filter:'<path d="M4 5h16"/><path d="M7 12h10"/><path d="M10 19h4"/>',
 };
 function icon(name,w=22){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="${w}" height="${w}">${ICONS[name]||''}</svg>`;}
 
@@ -319,7 +324,7 @@ function seed(){
           {id:uid(),ordem:13,titulo:'Restauração dos Sonhos',ministrador:'Pr. Hermes Pereira'},
           {id:uid(),ordem:14,titulo:'Dez Dificuldades de um Novo Convertido',ministrador:'Pr. Hermes Pereira'},
         ],
-        usarCronograma:false,cronograma:[]},
+        usarCronograma:false,cronograma:[],concluido:false},
       {id:uid(),nome:'Festa dos Heróis — A Jornada do Herói',data:'2026-10-12',local:'',descricao:'A jornada para achar o verdadeiro Herói: Cristo Jesus.',
         checklist:[],
         usarFuncoes:true,funcoes:[
@@ -355,7 +360,7 @@ function seed(){
           {id:uid(),data:'2026-10-10',descricao:'',concluido:false},
           {id:uid(),data:'2026-10-11',descricao:'',concluido:false},
           {id:uid(),data:'2026-10-12',descricao:'Dia do evento — Festa dos Heróis',concluido:false},
-        ]},
+        ],concluido:false},
     ],
     escalas:[],
     emprestimos:[],
@@ -381,6 +386,10 @@ function load(){
   if(!STATE.comunicados)STATE.comunicados=[];
   STATE.users.forEach(u=>{if(!u.senha)u.senha=DEFAULT_SENHA;});
   STATE.celulas.forEach(c=>{if(!c.comunicados)c.comunicados=[];});
+  STATE.celulas.forEach(c=>{
+    const jaTem=STATE.users.find(u=>u.papel==='lider'&&u.celulaId===c.id);
+    if(!jaTem)syncLiderUser(c);
+  });
   STATE.eventos.forEach(e=>{
     if(e.checklist===undefined)e.checklist=[];
     if(e.data===undefined)e.data='';
@@ -392,7 +401,9 @@ function load(){
     (e.celulasEnvolvidas||[]).forEach(c=>{if(c.prazo===undefined)c.prazo='';if(!c.checklist)c.checklist=[];});
     if(e.usarMinistradores===undefined){e.usarMinistradores=false;e.ministradores=[];}
     if(e.usarCronograma===undefined){e.usarCronograma=false;e.cronograma=[];}
+    if(e.concluido===undefined)e.concluido=false;
   });
+  STATE.agenda.forEach(a=>{if(!a.status)a.status='ativo';});
 }
 function save(){try{localStorage.setItem(LSKEY,JSON.stringify(STATE));}catch(e){}}
 
@@ -452,7 +463,7 @@ function todayISO(){return new Date().toISOString().slice(0,10);}
 function celulaById(id){return STATE.celulas.find(c=>c.id===id);}
 function pill(status,label){return `<span class="pill ${status}">${label}</span>`;}
 const statusLabel={ok:'Confirmado',wait:'Pendente',info:'Agendado'};
-function versiculo(){const vs=['"Tudo o que fizerem, façam de todo o coração, como para o Senhor." Col 3:23','"Portanto, ide e fazei discípulos de todas as nações." Mt 28:19','"E, orando, não useis de vãs repetições." Mt 6:7','"Tudo posso naquele que me fortalece." Fp 4:13'];return vs[new Date().getDate()%vs.length];}
+function versiculo(){const vs=['"Tudo o que fizerem, façam de todo o coração, como para o Senhor." Col 3:23','"Portanto, ide e fazei discípulos de todas as nações." Mt 28:19','"Tudo o que fizerem, façam de todo o coração, como para o Senhor, e não para os homens." Cl 3:23','"Tudo posso naquele que me fortalece." Fp 4:13'];return vs[new Date().getDate()%vs.length];}
 
 function openModal(title,sub,bodyHtml,onSubmit){
   document.getElementById('modalBox').innerHTML=`<h3>${title}</h3><div class="msub">${sub||''}</div><form id="modalForm">${bodyHtml}<div class="modal-actions"><button type="button" class="btn ghost" id="modalCancel">Cancelar</button><button type="submit" class="btn">Salvar</button></div></form>`;
@@ -482,9 +493,45 @@ function renderShell(){
   const roleLabel=SESSION.role==='pastor'?'Pastor':SESSION.role==='admin'?'Administrador':'Líder'+(SESSION.celulaId&&celulaById(SESSION.celulaId)?' · '+celulaById(SESSION.celulaId).nome:'');
   document.getElementById('sessionName').textContent=SESSION.nome;
   document.getElementById('sessionRole').textContent=roleLabel;
-  document.getElementById('avatarBox').textContent=initials(SESSION.nome);
+  const u=STATE.users.find(x=>x.id===SESSION.userId);
+  const avatarBox=document.getElementById('avatarBox');
+  avatarBox.innerHTML=u&&u.foto?`<img src="${u.foto}" alt="Foto de perfil">`:initials(SESSION.nome);
+  avatarBox.onclick=abrirFotoPerfil;
 }
-function actions(onEdit,onDel){return `<span style="display:flex;gap:2px;">${onEdit?`<button type="button" class="iconbtn" onclick="${onEdit}">${icon('edit',15)}</button>`:''}${onDel?`<button type="button" class="iconbtn del" onclick="${onDel}">${icon('trash',15)}</button>`:''}</span>`;}
+function abrirFotoPerfil(){
+  const u=STATE.users.find(x=>x.id===SESSION.userId);
+  let novaFoto=null;
+  openModal('Foto de perfil','Escolha uma imagem do seu computador ou celular.',
+   `<div style="display:flex;justify-content:center;margin-bottom:14px;"><div style="width:96px;height:96px;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,var(--turq),var(--purple));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:26px;" id="fotoPreview">${u&&u.foto?`<img src="${u.foto}" style="width:100%;height:100%;object-fit:cover;">`:initials(SESSION.nome)}</div></div>
+    <div class="field"><label>Imagem</label><input type="file" id="fotoInput" accept="image/*"></div>
+    ${u&&u.foto?'<button type="button" class="btn ghost" id="btnRemoverFoto" style="width:100%;justify-content:center;margin-top:6px;">Remover foto atual</button>':''}`,
+   (o)=>{ if(novaFoto){u.foto=novaFoto;} save();renderShell(); });
+  const fotoInput=document.getElementById('fotoInput');
+  fotoInput.onchange=()=>{
+    const file=fotoInput.files[0]; if(!file)return;
+    const reader=new FileReader();
+    reader.onload=(ev)=>{
+      const img=new Image();
+      img.onload=()=>{
+        const canvas=document.createElement('canvas');
+        const size=200; canvas.width=size; canvas.height=size;
+        const ctx=canvas.getContext('2d');
+        const scale=Math.max(size/img.width,size/img.height);
+        const w=img.width*scale, h=img.height*scale;
+        ctx.drawImage(img,(size-w)/2,(size-h)/2,w,h);
+        novaFoto=canvas.toDataURL('image/jpeg',0.85);
+        document.getElementById('fotoPreview').innerHTML=`<img src="${novaFoto}" style="width:100%;height:100%;object-fit:cover;">`;
+      };
+      img.src=ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+  const btnRemover=document.getElementById('btnRemoverFoto');
+  if(btnRemover)btnRemover.onclick=()=>{
+    delete u.foto; novaFoto=null; save(); closeModal(); renderShell();
+  };
+}
+function actions(onEdit,onDel,extra){return `<span style="display:flex;gap:2px;">${extra?`<button type="button" class="iconbtn ${extra.cls||''}" title="${extra.title||''}" onclick="${extra.onclick}">${icon(extra.icon,15)}</button>`:''}${onEdit?`<button type="button" class="iconbtn" onclick="${onEdit}">${icon('edit',15)}</button>`:''}${onDel?`<button type="button" class="iconbtn del" onclick="${onDel}">${icon('trash',15)}</button>`:''}</span>`;}
 
 function verEscalasPendentes(){
   const list=STATE.escalas.filter(e=>e.data>=todayISO()&&!e.tarefasDistribuidas).sort((a,b)=>a.data.localeCompare(b.data));
@@ -538,14 +585,15 @@ function escalaPage(){
   let escalas=STATE.escalas;
   if(SESSION.role==='lider')escalas=escalas.filter(e=>e.celulaId===SESSION.celulaId);
   const anos=[2026,2027];
-  const mesesComDados=[...new Set(escalas.filter(e=>+e.data.slice(0,4)===escalaTab.ano).map(e=>+e.data.slice(5,7)))].sort((a,b)=>a-b);
-  const meses=mesesComDados.length?mesesComDados:[9];
+  const mesesPorAno={2026:[9,10,11,12],2027:[1,2,3,4,5,6,7,8,9,10,11,12]};
+  const mesesComDados=[...new Set(escalas.filter(e=>+e.data.slice(0,4)===escalaTab.ano).map(e=>+e.data.slice(5,7)))];
+  const meses=[...new Set([...(mesesPorAno[escalaTab.ano]||[]),...mesesComDados])].sort((a,b)=>a-b);
   if(!meses.includes(escalaTab.mes))escalaTab.mes=meses[0];
   const tabsAno=anos.map(a=>`<button type="button" class="tab ${a===escalaTab.ano?'active':''}" onclick="escalaTab.ano=${a};route()">${a}</button>`).join('');
   const tabsMes=meses.map(m=>`<button type="button" class="tab ${m===escalaTab.mes?'active':''}" onclick="escalaTab.mes=${m};route()">${monthLabel(m)}</button>`).join('');
   const filtered=escalas.filter(e=>+e.data.slice(0,4)===escalaTab.ano&&+e.data.slice(5,7)===escalaTab.mes).sort((a,b)=>a.data.localeCompare(b.data));
-  const rows=filtered.map(e=>{const c=celulaById(e.celulaId);const canEdit=SESSION.role!=='lider';return `<tr><td>${fmtDate(e.data)}</td><td>${e.culto}</td><td>${c?c.nome:'—'}</td><td>${e.tarefasDistribuidas?pill('ok','Tarefas distribuídas'):pill('wait','Pendente')}</td><td>${canEdit?actions(`editEscala('${e.id}')`,`delEscala('${e.id}')`):''}</td></tr>`;}).join('')||`<tr><td colspan="5" style="color:var(--muted)">Nenhuma escala neste mês.</td></tr>`;
-  return pageHead('Escala de Culto','Escalas organizadas por ano e mês. Ao cadastrar, os líderes passam a visualizar a distribuição.',SESSION.role!=='lider'?{label:'Nova Escala',onclick:'newEscala()'}:null)+
+  const rows=filtered.map(e=>{const c=celulaById(e.celulaId);const canEdit=SESSION.role!=='lider';return `<tr><td>${fmtDate(e.data)}</td><td>${e.culto}</td><td>${c?c.nome:'—'}</td><td>${e.tarefasDistribuidas?pill('ok','Tarefas distribuídas'):pill('wait','Pendente')}</td><td>${canEdit?actions(`editEscala('${e.id}')`,`delEscala('${e.id}')`):''}</td></tr>`;}).join('')||`<tr><td colspan="5" style="color:var(--muted)">Nenhuma escala nesta competência ainda.</td></tr>`;
+  return pageHead('Escala de Culto','Escalas organizadas por ano e mês (competência). Ao cadastrar, os líderes passam a visualizar a distribuição.',SESSION.role!=='lider'?{label:'Nova Escala',onclick:'newEscala()'}:null)+
   `<div class="tabs">${tabsAno}</div><div class="tabs">${tabsMes}</div>
   <div class="table-wrap"><table><thead><tr><th>Data</th><th>Culto</th><th>Célula</th><th>Status</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
@@ -720,9 +768,35 @@ function verPendenciasEvento(id){
 }
 function eventosPage(){
   const rows=STATE.eventos.map(e=>{const {done,total,pct}=eventoProgresso(e);
-    return `<div class="row"><span class="dot" style="background:var(--turq)"></span><div style="flex:1;min-width:0"><a class="rtitle" href="#/eventos/${e.id}">${e.nome}</a><div class="rsub">${fmtDate(e.data)}${e.local?' · '+e.local:''}</div><a href="#" onclick="verPendenciasEvento('${e.id}');return false;" class="progress-wrap" style="margin-top:6px;max-width:260px;display:block;"><div class="progress"><div style="width:${pct}%"></div></div><span class="progress-label">${done}/${total} · ${pct}%</span></a></div><div class="rright">${SESSION.role!=='lider'?actions(null,`delEvento('${e.id}')`):''}</div></div>`;}).join('')||'<div class="row"><span class="rsub">Nenhum evento.</span></div>';
+    return `<div class="row"><span class="dot" style="background:${e.concluido?'var(--turq)':'var(--turq)'}"></span><div style="flex:1;min-width:0">
+      <a class="rtitle" href="#/eventos/${e.id}">${e.nome}</a> ${e.concluido?pill('ok','Concluído'):''}
+      <div class="rsub">${fmtDate(e.data)}${e.local?' · '+e.local:''}</div>
+      <a href="#" onclick="verPendenciasEvento('${e.id}');return false;" class="progress-wrap" style="margin-top:6px;max-width:260px;display:block;"><div class="progress"><div style="width:${pct}%"></div></div><span class="progress-label">${done}/${total} · ${pct}%</span></a>
+    </div><div class="rright">${SESSION.role!=='lider'?actions(`editEventoInfo('${e.id}')`,`delEvento('${e.id}')`,{icon:'check',title:e.concluido?'Reabrir evento':'Marcar como concluído',cls:e.concluido?'active':'',onclick:`toggleEventoConcluido('${e.id}')`}):''}</div></div>`;}).join('')||'<div class="row"><span class="rsub">Nenhum evento.</span></div>';
   return pageHead('Eventos','Crie eventos e acompanhe o checklist de preparação junto com as células.',SESSION.role!=='lider'?{label:'Novo Evento',onclick:'newEvento()'}:null,
-    `<button type="button" class="btn ghost" onclick="exportEventosPDF()">${icon('download',15)}PDF</button><button type="button" class="btn ghost" onclick="exportEventosExcel()">${icon('download',15)}Excel</button>`)+`<div class="list">${rows}</div>`;
+    `<button type="button" class="btn ghost" onclick="abrirFiltroExportEventos('pdf')">${icon('download',15)}PDF</button><button type="button" class="btn ghost" onclick="abrirFiltroExportEventos('excel')">${icon('download',15)}Excel</button>`)+`<div class="list">${rows}</div>`;
+}
+function toggleEventoConcluido(id){const e=STATE.eventos.find(x=>x.id===id);e.concluido=!e.concluido;save();route();}
+function abrirFiltroExportEventos(formato){
+  const opts=STATE.eventos.map(e=>`<label class="checkline" style="margin-bottom:8px;"><input type="checkbox" name="ev_${e.id}" checked>${e.nome}${e.concluido?' (concluído)':''}</label>`).join('')||'<div class="rsub">Nenhum evento cadastrado.</div>';
+  openModal('Selecionar eventos para exportar','Escolha quais eventos entram no arquivo e, se quiser, filtre por status.',
+   `<div class="field"><label>Status</label><select name="statusFiltro" onchange="filtrarCheckboxesEventoExport(this.value)">
+      <option value="todos">Todos</option><option value="andamento">Somente em andamento</option><option value="concluido">Somente concluídos</option>
+    </select></div>
+    <div class="field"><label>Eventos</label>${opts}</div>`,
+   (o)=>{
+     const ids=Object.keys(o).filter(k=>k.startsWith('ev_')).map(k=>k.slice(3));
+     if(ids.length===0){alert('Selecione ao menos um evento.');return;}
+     if(formato==='pdf')exportEventosPDF(ids); else exportEventosExcel(ids);
+   });
+}
+function filtrarCheckboxesEventoExport(status){
+  document.querySelectorAll('#modalForm input[name^="ev_"]').forEach(cb=>{
+    const id=cb.name.slice(3); const e=STATE.eventos.find(x=>x.id===id);
+    if(status==='todos'){cb.checked=true;}
+    else if(status==='andamento'){cb.checked=!e.concluido;}
+    else if(status==='concluido'){cb.checked=!!e.concluido;}
+  });
 }
 function newEvento(){
   openModal('Novo Evento','Escolha quais informações esse evento vai ter — dá para ajustar tudo depois, inclusive ligar ou desligar cada bloco.',
@@ -955,7 +1029,8 @@ function agendaPage(){
   const canDelete=SESSION.role==='pastor'||SESSION.role==='admin';
   const pendentesAtribuidas=pendenciasAtribuidas();
   const pendRows=pendentesAtribuidas.map(p=>`<div class="row"><span class="dot" style="background:${p.atrasado?'var(--danger)':'#D98C1D'}"></span><div><div class="rtitle">${p.area}${SESSION.role!=='lider'?' · '+p.celula:''}</div><div class="rsub">${p.eventoNome}</div></div><div class="rright">${p.atrasado?pill('bad','Atrasado — '+fmtDate(p.prazo)):pill('wait','Prazo: '+fmtDate(p.prazo))}<a href="#/eventos/${p.eventoId}" style="margin-left:8px;">${icon('chev',15)}</a></div></div>`).join('');
-  const rows=my.map(a=>`<div class="row"><span class="dot" style="background:var(--purple)"></span><div><div class="rtitle">${a.titulo}</div><div class="rsub">${fmtDate(a.data)} · ${a.horario} · ${a.local}${a.compartilhado?' · '+pill('info','Compartilhado'):''}</div></div><div class="rright">${canEdit(a)?actions(`editAgenda('${a.id}')`,canDelete?`delAgenda('${a.id}')`:null):''}</div></div>`).join('')||'<div class="row"><span class="rsub">Nenhum compromisso.</span></div>';
+  const statusPill=st=>st==='concluido'?pill('ok','Concluído'):st==='adiado'?pill('wait','Adiado'):st==='cancelado'?pill('bad','Cancelado'):'';
+  const rows=my.map(a=>`<div class="row"><span class="dot" style="background:var(--purple)"></span><div><div class="rtitle ${a.status==='cancelado'||a.status==='concluido'?'done':''}">${a.titulo}</div><div class="rsub">${fmtDate(a.data)} · ${a.horario} · ${a.local}${a.compartilhado?' · '+pill('info','Compartilhado'):''}${a.status&&a.status!=='ativo'?' · '+statusPill(a.status):''}</div></div><div class="rright">${canEdit(a)?actions(`editAgenda('${a.id}')`,canDelete?`delAgenda('${a.id}')`:null):''}</div></div>`).join('')||'<div class="row"><span class="rsub">Nenhum compromisso.</span></div>';
   return pageHead('Agenda','Sua agenda pessoal de reuniões e compromissos.',{label:'Nova Reunião',onclick:'newAgenda()'},
     `<button type="button" class="btn ghost" onclick="exportAgendaPDF()">${icon('download',15)}PDF</button><button type="button" class="btn ghost" onclick="exportAgendaExcel()">${icon('download',15)}Excel</button>`)+
   `<div class="stats">
@@ -980,8 +1055,14 @@ function newAgenda(editId){
    `<div class="field"><label>Título</label><input name="titulo" value="${a?a.titulo:''}" required></div>
     <div class="field-row"><div class="field"><label>Data</label><input type="date" name="data" value="${a?a.data:''}" required></div><div class="field"><label>Horário</label><input type="time" name="horario" value="${a?a.horario:''}"></div></div>
     <div class="field"><label>Local</label><input name="local" value="${a?a.local:''}"></div>
+    <div class="field"><label>Status</label><select name="status">
+      <option value="ativo" ${!a||a.status==='ativo'?'selected':''}>Ativo</option>
+      <option value="adiado" ${a&&a.status==='adiado'?'selected':''}>Adiado</option>
+      <option value="cancelado" ${a&&a.status==='cancelado'?'selected':''}>Cancelado</option>
+      <option value="concluido" ${a&&a.status==='concluido'?'selected':''}>Concluído</option>
+    </select></div>
     <div class="checkline"><input type="checkbox" name="compartilhado" ${a&&a.compartilhado?'checked':''}> <label style="margin:0">Compartilhar com os demais usuários da Videira?</label></div>`,
-   (o)=>{ const obj={titulo:o.titulo,data:o.data,horario:o.horario,local:o.local,compartilhado:!!o.compartilhado};
+   (o)=>{ const obj={titulo:o.titulo,data:o.data,horario:o.horario,local:o.local,status:o.status||'ativo',compartilhado:!!o.compartilhado};
      if(a){Object.assign(a,obj);} else {STATE.agenda.push({id:uid(),userId:SESSION.userId,...obj});} save();route(); });
 }
 function editAgenda(id){newAgenda(id);}
@@ -1062,27 +1143,30 @@ function exportAgendaPDF(){
     const my=STATE.agenda.filter(a=>a.userId===SESSION.userId||a.compartilhado).sort((a,b)=>a.data.localeCompare(b.data));
     const {jsPDF}=window.jspdf; const doc=new jsPDF();
     doc.setFontSize(14); doc.text('Agenda — '+SESSION.nome,14,16);
-    doc.autoTable({startY:22,head:[['Título','Data','Horário','Local','Compartilhado']],
-      body:my.map(a=>[a.titulo,fmtDate(a.data),a.horario||'—',a.local||'—',a.compartilhado?'Sim':'Não'])});
+    doc.autoTable({startY:22,head:[['Título','Data','Horário','Local','Status','Compartilhado']],
+      body:my.map(a=>[a.titulo,fmtDate(a.data),a.horario||'—',a.local||'—',statusAgendaLabel(a.status),a.compartilhado?'Sim':'Não'])});
     doc.save('agenda-videira.pdf');
   }catch(e){alert('Não foi possível gerar o PDF. Verifique sua conexão com a internet.');}
 }
+function statusAgendaLabel(st){return st==='concluido'?'Concluído':st==='adiado'?'Adiado':st==='cancelado'?'Cancelado':'Ativo';}
 function exportAgendaExcel(){
   try{
     const my=STATE.agenda.filter(a=>a.userId===SESSION.userId||a.compartilhado).sort((a,b)=>a.data.localeCompare(b.data));
-    const rows=my.map(a=>({Título:a.titulo,Data:fmtDate(a.data),Horário:a.horario||'',Local:a.local||'',Compartilhado:a.compartilhado?'Sim':'Não'}));
+    const rows=my.map(a=>({Título:a.titulo,Data:fmtDate(a.data),Horário:a.horario||'',Local:a.local||'',Status:statusAgendaLabel(a.status),Compartilhado:a.compartilhado?'Sim':'Não'}));
     const ws=XLSX.utils.json_to_sheet(rows); const wb=XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb,ws,'Agenda'); XLSX.writeFile(wb,'agenda-videira.xlsx');
   }catch(e){alert('Não foi possível gerar o Excel. Verifique sua conexão com a internet.');}
 }
-function exportEventosPDF(){
+function exportEventosPDF(ids){
   try{
+    const lista=ids?STATE.eventos.filter(e=>ids.includes(e.id)):STATE.eventos;
+    if(lista.length===0){alert('Nenhum evento selecionado.');return;}
     const {jsPDF}=window.jspdf; const doc=new jsPDF();
     doc.setFontSize(14); doc.text('Eventos',14,16);
     let y=24;
-    STATE.eventos.forEach(e=>{
+    lista.forEach(e=>{
       if(y>250){doc.addPage();y=16;}
-      doc.setFontSize(12); doc.text(e.nome+(e.data?' — '+fmtDate(e.data):''),14,y); y+=6;
+      doc.setFontSize(12); doc.text(e.nome+(e.data?' — '+fmtDate(e.data):'')+(e.concluido?' (Concluído)':''),14,y); y+=6;
       if(e.usarFuncoes&&e.funcoes.length){
         doc.setFontSize(9); doc.text('Funções do Evento',14,y); y+=2;
         doc.autoTable({startY:y,margin:{left:14},styles:{fontSize:8},head:[['Cargo','Nome']],body:e.funcoes.map(f=>[f.cargo,f.nome])});
@@ -1123,11 +1207,13 @@ function exportEventosPDF(){
     doc.save('eventos-videira.pdf');
   }catch(e){alert('Não foi possível gerar o PDF. Verifique sua conexão com a internet.');}
 }
-function exportEventosExcel(){
+function exportEventosExcel(ids){
   try{
+    const lista=ids?STATE.eventos.filter(e=>ids.includes(e.id)):STATE.eventos;
+    if(lista.length===0){alert('Nenhum evento selecionado.');return;}
     const wb=XLSX.utils.book_new();
     const checklistRows=[]; const funcoesRows=[]; const equipesRows=[]; const celulasRows=[]; const ministradoresRows=[]; const cronogramaRows=[];
-    STATE.eventos.forEach(e=>{
+    lista.forEach(e=>{
       if(e.checklist.length===0)checklistRows.push({Evento:e.nome,Tarefa:'',Responsável:'',Concluído:''});
       else e.checklist.forEach(c=>checklistRows.push({Evento:e.nome,Tarefa:c.tarefa,Responsável:c.responsavel,Concluído:c.concluido?'Sim':'Não'}));
       if(e.usarFuncoes)e.funcoes.forEach(f=>funcoesRows.push({Evento:e.nome,Cargo:f.cargo,Nome:f.nome}));
